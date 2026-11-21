@@ -37,17 +37,32 @@ def decompose_story(story_id: int) -> list:
     return [t.to_dict() for t in created]
 
 
+# 单次 LLM 调用的最大任务数。任务过多时 LLM 输出会超过 max_tokens 被截断,
+# 导致 JSON 解析失败,因此按批调用后合并结果。
+BATCH_SIZE = 30
+
+
+def _chunks(items: list, size: int) -> list:
+    return [items[i:i + size] for i in range(0, len(items), size)]
+
+
 def estimate_tasks(project_id: int) -> list:
-    """批量估算项目下所有未估算任务的工时"""
+    """批量估算项目下所有任务的工时"""
     tasks = Task.query.filter_by(project_id=project_id).all()
     if not tasks:
         return []
     task_list = [{"title": t.title, "type": t.type, "complexity": t.complexity} for t in tasks]
-    user_prompt = build_estimate_hours_prompt(task_list)
-    result = llm_client.chat_json(ESTIMATE_HOURS_SYSTEM, user_prompt)
+
+    # 分批估算,避免单次输出被截断
+    estimates = {}
+    for batch in _chunks(task_list, BATCH_SIZE):
+        user_prompt = build_estimate_hours_prompt(batch)
+        result = llm_client.chat_json(ESTIMATE_HOURS_SYSTEM, user_prompt)
+        for e in result.get("estimates", []):
+            if e.get("title"):
+                estimates[e["title"]] = e
 
     # 用 title 做匹配
-    estimates = {e["title"]: e for e in result.get("estimates", [])}
     for t in tasks:
         est = estimates.get(t.title)
         if est:
@@ -77,13 +92,18 @@ def assign_tasks(project_id: int) -> list:
         }
         for m in members
     ]
-    user_prompt = build_assign_tasks_prompt(task_list, member_list)
-    result = llm_client.chat_json(ASSIGN_TASKS_SYSTEM, user_prompt)
+
+    # 分批分配,避免单次输出被截断
+    assignments = []
+    for batch in _chunks(task_list, BATCH_SIZE):
+        user_prompt = build_assign_tasks_prompt(batch, member_list)
+        result = llm_client.chat_json(ASSIGN_TASKS_SYSTEM, user_prompt)
+        assignments.extend(result.get("assignments", []))
 
     # 用 name 匹配成员
     name_to_member = {m.name: m for m in members}
     title_to_task = {t.title: t for t in tasks}
-    for a in result.get("assignments", []):
+    for a in assignments:
         task = title_to_task.get(a.get("task_title"))
         member = name_to_member.get(a.get("assignee_name"))
         if task and member:
