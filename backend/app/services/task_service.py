@@ -83,30 +83,35 @@ def assign_tasks(project_id: int) -> list:
         {"title": t.title, "type": t.type, "estimate_hours": t.estimate_hours}
         for t in tasks
     ]
-    member_list = [
-        {
-            "name": m.name,
-            "role": m.role,
-            "skills": json.loads(m.skills) if m.skills else [],
-            "capacity_hours": m.capacity_hours,
-        }
-        for m in members
-    ]
-
-    # 分批分配,避免单次输出被截断
-    assignments = []
-    for batch in _chunks(task_list, BATCH_SIZE):
-        user_prompt = build_assign_tasks_prompt(batch, member_list)
-        result = llm_client.chat_json(ASSIGN_TASKS_SYSTEM, user_prompt)
-        assignments.extend(result.get("assignments", []))
-
-    # 用 name 匹配成员
     name_to_member = {m.name: m for m in members}
     title_to_task = {t.title: t for t in tasks}
-    for a in assignments:
-        task = title_to_task.get(a.get("task_title"))
-        member = name_to_member.get(a.get("assignee_name"))
-        if task and member:
-            task.assignee_id = member.id
+
+    # 分批分配,避免单次输出被截断;每批把前面的已分配负载回传给模型,保证跨批均衡
+    load_hours = {}
+    load_count = {}
+    for batch in _chunks(task_list, BATCH_SIZE):
+        member_list = [
+            {
+                "name": m.name,
+                "role": m.role,
+                "skills": json.loads(m.skills) if m.skills else [],
+                "capacity_hours": m.capacity_hours,
+                "assigned_hours": round(load_hours.get(m.name, 0), 1),
+                "remaining_hours": round(max(m.capacity_hours - load_hours.get(m.name, 0), 0), 1),
+                "assigned_tasks": load_count.get(m.name, 0),
+            }
+            for m in members
+        ]
+        user_prompt = build_assign_tasks_prompt(batch, member_list)
+        result = llm_client.chat_json(ASSIGN_TASKS_SYSTEM, user_prompt)
+
+        for a in result.get("assignments", []):
+            task = title_to_task.get(a.get("task_title"))
+            member = name_to_member.get(a.get("assignee_name"))
+            if task and member:
+                task.assignee_id = member.id
+                load_hours[member.name] = load_hours.get(member.name, 0) + (task.estimate_hours or 0)
+                load_count[member.name] = load_count.get(member.name, 0) + 1
+
     db.session.commit()
     return [t.to_dict() for t in tasks]

@@ -132,6 +132,8 @@ ASSIGN_TASKS_SYSTEM = """你是一名项目经理,擅长根据团队成员技能
 1. 任务类型与成员技能匹配
 2. 考虑成员当前负载,不要过载
 3. 优先把同类型任务给同一个人,减少切换成本
+4. 成员列表中 assigned_hours 是已分配工时、remaining_hours 是剩余可分配工时、assigned_tasks 是已分配任务数;
+   应优先把任务分给 remaining_hours 更高、assigned_tasks 更少的成员,保持团队负载均衡
 
 严格约束:
 - assignee_name 必须从用户提供的团队成员名单中选取,绝对不能编造名单外的名字
