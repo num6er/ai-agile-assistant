@@ -87,13 +87,19 @@
         <div class="card-head">
           <span>任务看板(共 {{ tasks.length }} 个)</span>
           <div>
+            <el-select v-model="statusFilter" size="small" clearable placeholder="按状态筛选"
+              style="width: 130px; margin-right: 8px">
+              <el-option label="待办" value="todo" />
+              <el-option label="进行中" value="doing" />
+              <el-option label="已完成" value="done" />
+            </el-select>
             <el-button size="small" type="success" @click="estimate" :loading="estimating">④ AI 估算工时</el-button>
             <el-button size="small" type="warning" @click="assign" :loading="assigning"
               :disabled="!members.length">⑤ AI 分配</el-button>
           </div>
         </div>
       </template>
-      <el-table :data="tasks" border size="small">
+      <el-table :data="filteredTasks" border size="small">
         <el-table-column prop="title" label="任务" />
         <el-table-column prop="type" label="类型" width="90" />
         <el-table-column prop="complexity" label="复杂度" width="90" />
@@ -162,6 +168,11 @@ const generating = ref(false)
 const decomposingId = ref(null)
 const estimating = ref(false)
 const assigning = ref(false)
+const statusFilter = ref('')
+
+const filteredTasks = computed(() =>
+  statusFilter.value ? tasks.value.filter(t => t.status === statusFilter.value) : tasks.value
+)
 
 const memberDialog = ref(false)
 const memberForm = ref({ name: '', role: 'backend', skillsStr: '', capacity: 40 })
