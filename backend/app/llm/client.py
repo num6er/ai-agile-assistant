@@ -1,6 +1,7 @@
 """LLM 客户端封装(OpenAI 兼容协议,支持 DeepSeek/通义千问/OpenAI)"""
 import json
 import re
+import time
 from typing import Optional
 from flask import current_app
 
@@ -22,8 +23,25 @@ class LLMClient:
             )
         return self._client
 
+    # 失败重试配置:最多重试 2 次(加上首次共 3 次尝试)
+    MAX_RETRIES = 2
+    RETRY_DELAY_SECONDS = 1
+
     def chat(self, system_prompt: str, user_prompt: str, temperature: Optional[float] = None) -> str:
-        """调用 LLM,返回文本响应"""
+        """调用 LLM,返回文本响应(网络/超时等瞬时错误自动重试)"""
+        from openai import APITimeoutError, APIConnectionError
+        last_error = None
+        for attempt in range(1 + self.MAX_RETRIES):
+            try:
+                return self._chat_once(system_prompt, user_prompt, temperature)
+            except (APITimeoutError, APIConnectionError) as e:
+                last_error = e
+                if attempt < self.MAX_RETRIES:
+                    time.sleep(self.RETRY_DELAY_SECONDS)
+        raise last_error
+
+    def _chat_once(self, system_prompt: str, user_prompt: str, temperature: Optional[float] = None) -> str:
+        """单次调用 LLM(不含重试逻辑)"""
         resp = self.client.chat.completions.create(
             model=current_app.config["LLM_MODEL"],
             messages=[
