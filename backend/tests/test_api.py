@@ -89,3 +89,60 @@ def test_update_task_status(client, project_id):
 def test_delete_project(client, project_id):
     resp = client.delete(f"/api/projects/{project_id}")
     assert resp.status_code == 204
+
+
+def test_get_project_detail(client, project_id):
+    resp = client.get(f"/api/projects/{project_id}")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["id"] == project_id
+    assert data["name"] == "测试项目"
+
+
+def test_get_project_not_found(client):
+    resp = client.get("/api/projects/9999")
+    assert resp.status_code == 404
+
+
+def _create_story(client, project_id):
+    """辅助:建需求+故事(跳过 AI 生成),返回故事 id"""
+    r = client.post("/api/requirements", json={
+        "project_id": project_id, "title": "PRD", "content": "demo"
+    })
+    rid = r.get_json()["id"]
+    from app.extensions import db
+    from app.models.user_story import UserStory
+    with client.application.app_context():
+        story = UserStory(
+            project_id=project_id, requirement_id=rid, code="US-001",
+            role="用户", goal="登录", benefit="使用系统",
+            acceptance_criteria=json.dumps([]), priority="high", story_points=3,
+        )
+        db.session.add(story)
+        db.session.commit()
+        sid = story.id
+    return sid
+
+
+def test_list_stories_by_project(client, project_id):
+    sid = _create_story(client, project_id)
+    resp = client.get(f"/api/stories?project_id={project_id}")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 1
+    assert data[0]["id"] == sid
+    assert data[0]["code"] == "US-001"
+
+
+def test_update_story(client, project_id):
+    sid = _create_story(client, project_id)
+    resp = client.put(f"/api/stories/{sid}", json={
+        "priority": "low", "story_points": 5, "goal": "注册",
+    })
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["priority"] == "low"
+    assert data["story_points"] == 5
+    assert data["goal"] == "注册"
+    # 未修改的字段保持原值
+    assert data["role"] == "用户"
