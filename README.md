@@ -169,6 +169,65 @@ cd backend
 .venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
+## 常见问题 FAQ
+
+**Q1: 后端启动时报端口被占用（`Address already in use` / `10048`）？**
+
+Flask 默认使用 5000 端口。先找出占用进程再结束它：
+
+```powershell
+netstat -ano | findstr :5000     # 记下最后一列 PID
+taskkill /PID <PID> /F            # 结束进程
+```
+
+或者修改 `backend/.env` 中的 `FLASK_PORT=5001` 换端口，同时同步修改 `frontend/vite.config.js` 里代理的目标端口。
+
+**Q2: `npm install` 很慢或失败？**
+
+默认源访问慢时可切换国内镜像：
+
+```powershell
+npm config set registry https://registry.npmmirror.com
+npm install
+```
+
+如果提示 esbuild 等包的 install scripts 被拦截（npm 新版安全策略），执行：
+
+```powershell
+npm approve-scripts esbuild
+npm rebuild esbuild
+```
+
+**Q3: `pip install` 很慢？**
+
+使用清华镜像安装：
+
+```powershell
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+**Q4: LLM 相关接口报错（解析/生成/估算/分配失败）？**
+
+按顺序检查：
+
+1. 后端是否已启动（`http://localhost:5000/api/health` 能访问）
+2. `backend/.env` 中 `LLM_API_KEY` 是否正确、DeepSeek 账户是否有余额
+3. 查看后端终端的具体报错信息——`Authentication Error` 是 Key 无效，`Insufficient Balance` 是欠费，超时多为网络问题
+
+**Q5: PowerShell 激活虚拟环境报「禁止运行脚本」？**
+
+执行一次（当前用户生效，之后新开的终端不需要再执行）：
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+然后重新执行 `.venv\Scripts\Activate.ps1`。
+
+**Q6: `git push` 连不上 GitHub？**
+
+多为网络问题。可尝试：切换网络（如手机热点）、重试几次，或临时使用镜像地址推送。克隆慢可用镜像加速，例如 `git clone https://gh-proxy.com/https://github.com/num6er/ai-agile-assistant.git`（镜像仅用于拉取，推送需指回原地址）。
+
 ## AI 辅助开发说明(答辩要点)
 
 本项目严格遵循实习要求:
