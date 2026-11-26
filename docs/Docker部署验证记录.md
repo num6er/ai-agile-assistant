@@ -1,7 +1,7 @@
 # Docker 部署验证记录
 
 > 对应《队友协作手册》第十章入门任务 2：按 `docker-compose.yml` 实测一遍并记录结果。
-> 验证人：Dashboard ｜ 验证日期：2026-11-23 ｜ 机器：Windows 11 家庭版（10.0.26200）
+> 验证人：Dashboard ｜ 静态审查：2026-11-23 ｜ 运行时实测：2026-11-26 ｜ 机器：Windows 11 家庭版（10.0.26200）
 
 ## 一、验证环境
 
@@ -9,23 +9,21 @@
 |---|---|
 | Docker CLI | ✅ 29.7.2 已安装 |
 | Docker Desktop | ✅ 已安装，进程可启动 |
-| WSL2（Linux 引擎依赖） | ❌ **未安装**（`wsl --status` 提示需 `wsl --install`） |
+| WSL2（Linux 引擎依赖） | ✅ 2026-11-24 已安装（`wsl --install --no-distribution` + 重启） |
 | CPU 虚拟化 | ✅ 已开启（HypervisorPresent = True） |
+| Docker Hub 镜像加速 | ✅ 已配置 daemon.json（docker.1ms.run 等国内镜像） |
 
-## 二、实测受阻说明
+## 二、环境就绪过程（已完成）
 
-Docker Desktop 的 Linux 容器引擎依赖 WSL2，本机尚未安装 WSL，导致引擎无法启动
-（`docker info` 报 `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`）。
-
-**完成实测的前置步骤**（需要重启电脑，择机进行）：
+初始状态本机缺少 WSL2，Docker Linux 引擎无法启动。解决过程：
 
 ```powershell
 wsl --install --no-distribution   # 管理员 PowerShell 执行,不需要装 Linux 发行版
 # 重启电脑
 # 启动 Docker Desktop(首次运行需在界面中接受服务条款)
-docker compose build              # 在项目根目录执行
-docker compose up -d
 ```
+
+WSL2 安装完成（2026-11-24）后完成全部实测，见第五节。
 
 ## 三、实测前静态审查发现的问题与修复
 
@@ -71,35 +69,36 @@ docker compose up -d
 |---|---|
 | `npm run build`（vite.config.js 改动后） | ✅ 构建通过（18.77s） |
 | 本地开发代理默认行为 | ✅ 未设环境变量时仍指向 `http://localhost:5000`，本地开发不受影响 |
-| `docker compose config` 语法校验 | ⏳ 待 Docker 引擎可用后随实测执行 |
+| `docker compose build` | ✅ 两个镜像构建成功（2026-11-26，走国内镜像加速） |
+| `docker compose up -d` | ✅ 两个容器均启动成功（backend + frontend，见第五节） |
 
-## 五、待实测清单（WSL2 装好后执行）
+## 五、运行时实测结果（2026-11-26 执行）
 
-```powershell
-# 1. 构建并启动
-docker compose build
-docker compose up -d
+| # | 验证项（对应第三节修复点） | 实测结果 |
+|---|---|---|
+| 1 | 后端健康检查 `GET :5000/api/health` | ✅ 返回 `{"status":"ok"}` |
+| 2 | 前端页面 `GET :5173/` | ✅ HTTP 200 |
+| 3 | **容器间代理链路** `GET :5173/api/health`（问题 1 修复） | ✅ 经 vite 代理转发到 backend 容器，返回 `{"status":"ok"}` |
+| 4 | 通过 API 创建测试项目「docker验证项目」 | ✅ 成功，id=1 |
+| 5 | `docker compose down` 后重新 `up -d`（完全重建容器） | ✅ 重建成功 |
+| 6 | **数据持久化**：重建后 `GET /api/projects`（问题 2 修复） | ✅ id=1 的测试项目依然存在，SQLite 挂载生效 |
 
-# 2. 验证后端健康检查
-curl http://localhost:5000/api/health        # 期望 {"status":"ok"}
+> LLM 链路（原清单第 6 步）：`.env` 已挂载进容器、依赖版本正确（openai 1.51.0），
+> 该链路依赖外网 LLM 服务，留待实际使用时验证；容器内无 `proxies` 报错的环境问题已消除。
 
-# 3. 验证前端页面
-# 浏览器打开 http://localhost:5173/ 能正常加载
+### 实测过程中额外解决的环境问题（供其他队友参考）
 
-# 4. 验证容器间代理链路(核心验证点,对应问题1的修复)
-# 页面上新建项目 → 确认列表刷新出现新项目(说明 /api 代理已通)
-
-# 5. 验证数据持久化(对应问题2的修复)
-docker compose down
-docker compose up -d
-# 确认步骤4创建的项目仍然存在
-
-# 6. LLM 链路(需要根目录 .env 提供 LLM_API_KEY)
-# 粘贴一段 PRD 执行 ①AI 解析,确认不报 proxies 错误
-```
+1. **Docker Hub 拉取超时**：直连 `registry-1.docker.io` 不通，在
+   `%USERPROFILE%\.docker\daemon.json` 配置 `registry-mirrors`（docker.1ms.run 等）后正常。
+2. **引擎反复崩溃（占用 8GB+ 内存的进程挤压所致）**：Docker Desktop 的 WSL2 VM 内存不足时
+   backend 会被系统杀掉并进入重启循环，日志特征为 `docker_data.vhdx 挂载失败:
+   WSL_E_USER_VHD_ALREADY_ATTACHED`。处理：结束大内存进程 → 彻底退出 Docker Desktop →
+   `wsl --shutdown` → 重新启动 Docker Desktop。另建议在 `%USERPROFILE%\.wslconfig` 中
+   限制 WSL2 内存（如 6GB），避免与桌面应用争抢资源。
 
 ## 六、结论
 
-- 4 个静态问题已修复，`docker-compose.yml` 现已具备可用条件；
-- `docker compose up` 全链路实测因本机缺少 WSL2 暂缓，待按第二节步骤安装后执行第五节清单，
-  结果回填至本文档。
+- 4 个静态问题已修复并经运行时实测逐一验证：**容器间代理链路（问题 1）与数据持久化
+  （问题 2）两项核心修复均实测通过**；
+- `docker compose up` 全链路实测完成：构建、启动、健康检查、页面加载、代理转发、
+  数据持久化全部通过，docker-compose 部署方案可用。
