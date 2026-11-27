@@ -14,14 +14,14 @@
 
 | 提交人 | 提交条数 | 代表提交 |
 |---|---|---|
-| 郑磊 | 11 | `chore: 初始化项目`、`fix: 工时估算改为分批调用 LLM`、`feat: 任务分配跨批次回传负载`、4 次 PR 合并 |
+| 郑磊 | 14 | `chore: 初始化项目`、`fix: 工时估算改为分批调用 LLM`、`feat: 任务分配跨批次回传负载`、4 次 PR 合并 |
 | 周奕诺 | 6 | `feat: 任务看板增加按状态筛选下拉框`、`fix: 修复 Docker 部署代理地址/数据库挂载`、`feat: Element Plus 中文语言包`、`docs: Docker 运行时实测完成` |
 
 **协作方式**
 
 - 代码托管于 GitHub，采用 `main` 主干 + `feature/*`、`docs/*` 功能分支的开发模式
 - 所有改动通过 Pull Request 提交，经 Review 后合并，提交信息遵循 [CONTRIBUTING.md](CONTRIBUTING.md) 的 Conventional Commits 规范
-- 仓库共 17 条提交、2 位贡献者、4 个已合并 PR
+- 仓库共 20 条提交、2 位贡献者、4 个已合并 PR
 - 协作记录详见 [docs/协作记录模板.md](docs/协作记录模板.md)
 
 ## 项目简介
