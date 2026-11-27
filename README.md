@@ -3,6 +3,19 @@
 > 基于 LLM 的 **PRD → 用户故事 → 任务 → 工时 → 分配** 一键自动化平台
 > 毕业实习项目 · 主题:如何用 AI 辅助团队软件开发
 
+## 团队成员与分工
+
+| 成员 | GitHub | 主要职责 | 具体工作 |
+|---|---|---|---|
+| zheng Lei | [@num6er](https://github.com/num6er) | 后端开发 / 架构设计 | Flask 应用工厂与 REST API、SQLAlchemy 数据模型、LLM 客户端与 5 个 Prompt 模板、3 个业务 Service、分批调用与负载均衡算法、pytest 测试、README 与架构文档 |
+| Dashboard | [@zhouyinuoer](https://github.com/zhouyinuoer) | 前端开发 / 部署与测试 | Vue3 页面与任务看板状态筛选、Element Plus 中文化、接口测试补充、LLM 调用重试机制、Docker 部署配置修复与运行时实测、常见问题 FAQ |
+
+**协作方式**
+
+- 代码托管于 GitHub，采用 `main` 主干 + `feature/*`、`docs/*` 功能分支的开发模式
+- 所有改动通过 Pull Request 提交，经 Review 后合并，提交信息遵循 [CONTRIBUTING.md](CONTRIBUTING.md) 的 Conventional Commits 规范
+- 协作记录详见 [docs/协作记录模板.md](docs/协作记录模板.md)
+
 ## 项目简介
 
 输入需求文档(PRD),系统自动完成敏捷开发前期的人力消耗大、主观性强的环节:
