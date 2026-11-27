@@ -22,7 +22,7 @@
 - 代码托管于 GitHub，采用 `main` 主干 + `feature/*`、`docs/*` 功能分支的开发模式
 - 所有改动通过 Pull Request 提交，经 Review 后合并，提交信息遵循 [CONTRIBUTING.md](CONTRIBUTING.md) 的 Conventional Commits 规范
 - 仓库共 20 条提交、2 位贡献者、4 个已合并 PR
-- 协作记录详见 [docs/协作记录模板.md](docs/协作记录模板.md)
+- 协作记录详见 [docs/协作记录.md](docs/协作记录.md)
 
 ## 项目简介
 
