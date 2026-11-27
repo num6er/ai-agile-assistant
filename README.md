@@ -7,8 +7,8 @@
 
 | 成员 | GitHub 账号 | 学号 | 主要职责 | 具体工作 |
 |---|---|---|---|---|
-| zl | [@num6er](https://github.com/num6er) | 待填 | 后端开发 / 架构设计 | Flask 应用工厂与 5 个 REST 蓝图、SQLAlchemy 五张数据表模型、LLM 客户端与 5 个 Prompt 模板、3 个业务 Service、大批量任务的分批调用与跨批次负载均衡算法、pytest 测试、README / 架构图 / 协作规范文档 |
-| zhouyinuoer | [@zhouyinuoer](https://github.com/zhouyinuoer) | 待填 | 前端开发 / 部署与测试 | Vue3 项目详情页与任务看板按状态筛选、Element Plus 中文语言包接入、接口测试用例补充、LLM 调用失败重试机制、Docker 部署配置修复（容器内代理地址、数据库卷挂载、.dockerignore）与运行时实测、常见问题 FAQ |
+| zl | [@num6er](https://github.com/num6er) | 923106840441 | 后端开发 / 架构设计 | Flask 应用工厂与 5 个 REST 蓝图、SQLAlchemy 五张数据表模型、LLM 客户端与 5 个 Prompt 模板、3 个业务 Service、大批量任务的分批调用与跨批次负载均衡算法、pytest 测试、README / 架构图 / 协作规范文档 |
+| zhouyinuoer | [@zhouyinuoer](https://github.com/zhouyinuoer) | 923106840442 | 前端开发 / 部署与测试 | Vue3 项目详情页与任务看板按状态筛选、Element Plus 中文语言包接入、接口测试用例补充、LLM 调用失败重试机制、Docker 部署配置修复（容器内代理地址、数据库卷挂载、.dockerignore）与运行时实测、常见问题 FAQ |
 
 **分工依据（对应提交记录）**
 
