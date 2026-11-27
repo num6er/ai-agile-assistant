@@ -5,15 +5,23 @@
 
 ## 团队成员与分工
 
-| 成员 | GitHub | 主要职责 | 具体工作 |
-|---|---|---|---|
-| zheng Lei | [@num6er](https://github.com/num6er) | 后端开发 / 架构设计 | Flask 应用工厂与 REST API、SQLAlchemy 数据模型、LLM 客户端与 5 个 Prompt 模板、3 个业务 Service、分批调用与负载均衡算法、pytest 测试、README 与架构文档 |
-| Dashboard | [@zhouyinuoer](https://github.com/zhouyinuoer) | 前端开发 / 部署与测试 | Vue3 页面与任务看板状态筛选、Element Plus 中文化、接口测试补充、LLM 调用重试机制、Docker 部署配置修复与运行时实测、常见问题 FAQ |
+| 成员 | GitHub 账号 | 学号 | 主要职责 | 具体工作 |
+|---|---|---|---|---|
+| zl | [@num6er](https://github.com/num6er) | 待填 | 后端开发 / 架构设计 | Flask 应用工厂与 5 个 REST 蓝图、SQLAlchemy 五张数据表模型、LLM 客户端与 5 个 Prompt 模板、3 个业务 Service、大批量任务的分批调用与跨批次负载均衡算法、pytest 测试、README / 架构图 / 协作规范文档 |
+| zhouyinuoer | [@zhouyinuoer](https://github.com/zhouyinuoer) | 待填 | 前端开发 / 部署与测试 | Vue3 项目详情页与任务看板按状态筛选、Element Plus 中文语言包接入、接口测试用例补充、LLM 调用失败重试机制、Docker 部署配置修复（容器内代理地址、数据库卷挂载、.dockerignore）与运行时实测、常见问题 FAQ |
+
+**分工依据（对应提交记录）**
+
+| 提交人 | 提交条数 | 代表提交 |
+|---|---|---|
+| zl | 11 | `chore: 初始化项目`、`fix: 工时估算改为分批调用 LLM`、`feat: 任务分配跨批次回传负载`、4 次 PR 合并 |
+| zhouyinuoer | 6 | `feat: 任务看板增加按状态筛选下拉框`、`fix: 修复 Docker 部署代理地址/数据库挂载`、`feat: Element Plus 中文语言包`、`docs: Docker 运行时实测完成` |
 
 **协作方式**
 
 - 代码托管于 GitHub，采用 `main` 主干 + `feature/*`、`docs/*` 功能分支的开发模式
 - 所有改动通过 Pull Request 提交，经 Review 后合并，提交信息遵循 [CONTRIBUTING.md](CONTRIBUTING.md) 的 Conventional Commits 规范
+- 仓库共 17 条提交、2 位贡献者、4 个已合并 PR
 - 协作记录详见 [docs/协作记录模板.md](docs/协作记录模板.md)
 
 ## 项目简介
